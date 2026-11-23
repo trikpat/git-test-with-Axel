@@ -29,13 +29,17 @@ def generate_primes(count):
 
 
 def render_screen(primes, candidate, frame, width, height, complete=False):
-    rng = random.Random(frame * 7919)
-    noise = "      .:;+*/\\|"
-    screen = [
-        [rng.choice(noise) for _ in range(width)]
-        for _ in range(height)
-    ]
-    colors = ["96" if row % 2 == 0 else "35" for row in range(height)]
+    if complete:
+        screen = [[" "] * width for _ in range(height)]
+        colors = ["92"] * height
+    else:
+        rng = random.Random(frame * 7919)
+        noise = "      .:;+*/\\|"
+        screen = [
+            [rng.choice(noise) for _ in range(width)]
+            for _ in range(height)
+        ]
+        colors = ["96" if row % 2 == 0 else "35" for row in range(height)]
 
     def put(row, column, text, color):
         if not 0 <= row < height or column >= width - 1:
@@ -59,7 +63,7 @@ def render_screen(primes, candidate, frame, width, height, complete=False):
         screen[row][0] = "|"
         screen[row][-1] = "|"
 
-    if height > 9:
+    if not complete and height > 9:
         scan_row = 6 + frame % (height - 8)
         screen[scan_row] = ["-"] * width
         colors[scan_row] = "36"
@@ -93,7 +97,10 @@ def render_screen(primes, candidate, frame, width, height, complete=False):
     )
     centered(height - 3, footer, "96")
     centered(height - 2, " . : + * / NEON//CITY / * + : . ", "95")
-    return "\n".join(styled("".join(line), color) for line, color in zip(screen, colors))
+    return "\n".join(
+        styled("".join(line), color) if any(line) else ""
+        for line, color in zip(screen, colors)
+    )
 
 
 opening_credits = [
@@ -170,5 +177,5 @@ try:
         print(styled("+==================================================================+", "95"))
 finally:
     if interactive:
-        sys.stdout.write("\033[0m\033[?25h\n")
+        sys.stdout.write(f"\033[0m\033[{height};1H\033[?25h")
         sys.stdout.flush()
